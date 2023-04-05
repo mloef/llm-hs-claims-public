@@ -1,3 +1,5 @@
+Hackathon project with all sensitive info (API keys, health data) removed.
+
 To run the backend:
 export FLASK_APP=app
 flask run
