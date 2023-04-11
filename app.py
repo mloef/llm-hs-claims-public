@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify, send_from_directory
 from striprtf.striprtf import rtf_to_text
 import openai
@@ -136,11 +137,8 @@ def _query(data, collection, sentences):
     results = []
 
     for procedure in procedures:
-        # query_str = 'title: ' + procedure['procedure'] + '\n' + 'description: ' + procedure['description']
         search_results = _query_db(
             procedure['description'], collection, sentences)
-        search_results += _query_db(
-            procedure['procedure'], collection, sentences)
         print('SEARCH RESULTS')
         print(search_results)
         response = openai.ChatCompletion.create(
@@ -155,9 +153,6 @@ def _query(data, collection, sentences):
 
         print("PROCEDURE JSON")
         pprint(procedure)
-
-        # print("RESPONSE")
-        # pprint(response)
 
         result = response['choices'][0]["message"]["content"]
         print("RESULT")
