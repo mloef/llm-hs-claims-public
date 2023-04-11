@@ -21,10 +21,8 @@ CORS(app)
 
 @app.route('/api/hello', methods=['POST'])
 def hello():
-    #email = request.form['email']
     decision = request.files['insurance_provider_letter']
     contract = request.files['insurance_terms']
-    # print(email, decision, contract)
 
     collection, sentences = _initialize_db(contract.read())
 
@@ -43,7 +41,6 @@ def hello():
 
 @app.route('/submit/claim', methods=['POST', 'GET'])
 def claim():
-    #claim = request.form['claim']
     claim = 'placeholder'
     return _handle_claim_submission(claim)
 
@@ -59,7 +56,6 @@ def _handle_claim_submission(claim):
         cookie['domain'] = ".anthem.com"
         driver.add_cookie(cookie)
 
-    # Navigate to login screen.
     login_wait = WebDriverWait(driver, 30)
     first_login = login_wait.until(EC.presence_of_element_located((By.LINK_TEXT, "Log In")))
     first_login.click()
@@ -67,13 +63,11 @@ def _handle_claim_submission(claim):
     login_element = login_wait.until(EC.presence_of_element_located((By.LINK_TEXT, "Log In")))
     login_element.click()
 
-    # Grab login credentials.
     with open("credentials.json", "r") as file:
         data = json.load(file)
     email = data["username"]
     password = data["password"]
 
-    # Enter login credentials
     email_wait = WebDriverWait(driver, 30)
     email_field = email_wait.until(EC.presence_of_element_located((By.ID, "txtUsername")))
     email_field.send_keys(email)
@@ -82,15 +76,12 @@ def _handle_claim_submission(claim):
     password_field.send_keys(password)
     driver.find_element(By.ID, "btnLogin").click()
 
-    # Navigate to claim submission.
     driver.get(
         "https://membersecure.anthem.com/member/message-center/new-message?category=56")
 
-    # Setup claims form
     message_wait = WebDriverWait(driver, 30)
     message_type = message_wait.until(EC.presence_of_element_located((By.ID, "ddlNewMsgCat_button")))
     message_type.click()
-    # Element 104 is "Greviances / Appeals"
     desired_item = driver.find_element(By.CSS_SELECTOR, "[data-value='104']")
     desired_item.click()
 
@@ -136,7 +127,6 @@ def _query(data, collection, sentences):
     results = []
 
     for procedure in procedures:
-        # query_str = 'title: ' + procedure['procedure'] + '\n' + 'description: ' + procedure['description']
         search_results = _query_db(
             procedure['description'], collection, sentences)
         search_results += _query_db(
@@ -156,9 +146,6 @@ def _query(data, collection, sentences):
         print("PROCEDURE JSON")
         pprint(procedure)
 
-        # print("RESPONSE")
-        # pprint(response)
-
         result = response['choices'][0]["message"]["content"]
         print("RESULT")
         print(result)
@@ -170,7 +157,6 @@ def _query(data, collection, sentences):
 def _initialize_db(file=None):
     from tika import parser
 
-    # Parse the PDF file and extract the text content
     if not file:
         parsed_pdf = parser.from_file('4CDFIND01012020.pdf')
     else:
@@ -181,10 +167,8 @@ def _initialize_db(file=None):
 
     from pysbd import Segmenter
 
-    # create a sentence segmenter for English
     segmenter = Segmenter(language="en", clean=True)
-    # text = "This is a sample text. It contains a few sentences. And it demonstrates the use of PySBD."
-    sentences = segmenter.segment(text)  # get a list of sentences
+    sentences = segmenter.segment(text)
 
     import chromadb
     from chromadb.utils import embedding_functions
@@ -221,7 +205,6 @@ def _initialize_db(file=None):
 
 
 def _query_db(query, collection, sentences):
-    # print(query)
     TOP_K = 2
 
     CONTEXT_WINDOW = 50
@@ -232,8 +215,6 @@ def _query_db(query, collection, sentences):
         where={"userID": "0"},
     )
 
-    # pprint.pprint(query_result)
-
     result = []
     for id in query_result['ids'][0]:
         index = int(id)
@@ -243,7 +224,6 @@ def _query_db(query, collection, sentences):
     return result
 
 
-# hardcode demo if main
 if __name__ == '__main__':
     collection, sentences = _initialize_db()
 
